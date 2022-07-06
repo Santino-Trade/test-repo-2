@@ -1,0 +1,43 @@
+version: "3.9"
+   
+services:
+    db:
+        image: postgres
+        volumes:
+            - ./data/db:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+    web:
+        build: 
+            context: ./test_project_start/
+            dockerfile: Dockerfile
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/code
+        ports:
+            - "8000:8000"
+        environment:
+            - POSTGRES_NAME=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        depends_on:
+            - db
+    frontend:
+        restart: always
+        command : npm start
+        container_name: front
+        build:
+            context: ./frontend/
+            dockerfile: Dockerfile
+        ports:
+            - "3000:3000"
+        stdin_open: true
+        depends_on:
+            - web
+        networks:
+            - db-net
+networks:
+    db-net:
+        driver: bridge
